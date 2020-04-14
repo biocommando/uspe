@@ -22,14 +22,14 @@ Parts can contain four kinds of commands:
 - references to other parts
 - scripts
 
-#Wave file insertion
+# Wave file insertion
 
 The wave file insertion has the following syntax (parameters in parentheses are optional):
 ```
 <wave_file>.wav (position relative to current song position) (sample number to start playback at) (length in samples)
 ```
 
-#Song position
+# Song position
 
 Song position incrementation has the following syntax:
 ```
@@ -50,7 +50,7 @@ part main:
     
 ```
 
-#Part references
+# Part references
 
 References to other parts have the following syntax:
 ```
@@ -72,7 +72,7 @@ Any non-script line that has unresolved parameters is deleted.
 
 The greatest benefit from parametrized parts comes when using scripts.
 
-#Scripts
+# Scripts
 
 Scripts have the following syntax:
 ```
@@ -106,7 +106,7 @@ to the scripts. The official API, though, contains the following convenience acc
 - variable synths: array of synthethizers (explained below)
 - variable effects: map of effects (explained below)
 
-#Synthetizers API:
+# Synthetizers API:
 
 Synthetizers can be added by appending a function with the following signature to *synths* array:
 ```
@@ -136,7 +136,7 @@ script;
 script_end;
 ```
 
-#Effects API:
+# Effects API:
 
 Effects are applied on per sample basis. The object *effects* contains a map with the sample filename as the key
 and as the value a function with a similar signature as in the synthethizer API, with the input sample argument
@@ -159,7 +159,7 @@ script;
 script_end;
 ```
 
-#Including files
+# Including files
 
 USPE files can be included to the input file by using the following syntax:
 ```
@@ -169,7 +169,7 @@ include path/to/file
 The inclusion is done in the same way as in C: the compiler expands the file in place.
 All the files can be included only once though.
 
-#Wave file dependencies
+# Wave file dependencies
 
 A USPE file can depend on another USPE file that will generate a wave file that is required by the USPE file.
 Dependencies use the following syntax:
@@ -188,7 +188,7 @@ example above the variable would have the following contents:
 
 Note that the sample_directory variable is not prepended to the file paths.
 
-#Available variables
+# Available variables
 
 |Variable|Default|Description|
 |---|---|---|
@@ -200,7 +200,7 @@ Note that the sample_directory variable is not prepended to the file paths.
 |normalize|1|1 = normalize the output to the *volume*, 0 = do not normalize the output (can cause clipping; useful for e.g. generated drumloops)|
 |channels|1|Number of channels (1 or 2)|
 
-#Program parameters
+# Program parameters
 
 Program parameters can be given by adding command line parameters --param-1, --param-2, ... These parameters
 will substitute strings "$$1", "$$2", ... respectively. The program parameters are passed to all dependencies
@@ -213,15 +213,15 @@ part vocals:
 ... 
 ```
 
-#USPE library
+# USPE library
 
 USPE comes with an included library that contains some useful tools for building your track.
 
 All the files should have documentation in the file itself. The example file test.txt demonstrates the usage of the included library.
 
-#License
+# License
 
 If you really want to, you can use and expand USPE as you like. I'll come up with a proper permissive license later.
 
-#Inspiration
+# Inspiration
 The way USPE works has been inspired by the Yocto project that I have been started to utilize at work :)
