@@ -24,6 +24,7 @@ part main:
 const fs = require('fs')
 const child_process = require('child_process')
 const waveHandler = require('./wave-file-handler')
+const cache = require('./cache')
 
 const SILENCE_FILE = 'silence-GUID-24732f5f-a7ea-4727-86a7-317979bc47ee.wav'
 
@@ -36,8 +37,11 @@ const argvGet = (args, required = true) => {
     if (required) throw 'Required arg not found: ' + args.join(' or ')
 }
 
+console.log('Executing with arguments', process.argv)
+
 const inputFile = argvGet(['--input-file', '--input', '-i'])
 const outputFile = argvGet(['--output-file', '--output', '-o'])
+
 const programParams = []
 for (let i = 1; argvGet(['--param-' + i, '-p' + i], false); i++) {
     programParams.push(argvGet(['--param-' + i, '-p' + i], false))
@@ -68,6 +72,7 @@ const filesIncluded = []
 const synths = [] // List of synthetizing functions
 const fx = {} // Sample to effect function map; note that for e.g. reverbs you need to have enough silence in the end
 let pos = 0
+let dependencyIsDirty = false
 
 const includeFile = file => {
     if (filesIncluded.includes(file)) {
@@ -95,10 +100,14 @@ const includeFile = file => {
                     args.push('--depend-params', split[2])
                 }
                 const pr = child_process.spawnSync('node', args)
+                const stdoutStr = pr.stdout.toString()
+                if (!dependencyIsDirty && stdoutStr.includes('>>> No cache match')) {
+                    dependencyIsDirty = true
+                }
                 console.log( 'EXECUTION OUTPUT:',
-                    pr.stdout.toString(), pr.stderr.toString()
+                    stdoutStr, pr.stderr.toString()
                 )
-                console.log('***********')
+                console.log('*********** return execution of', outputFile, 'dependency dirty?', dependencyIsDirty)
                 if (pr.status !== 0) {
                     throw 'Aborting because of errors'
                 }
@@ -248,6 +257,16 @@ const generateOutput = () => {
     waveHandler._16Bit.write(outputFile, signal, variables.sample_rate)
 }
 
-generateOutput()
+// cache.isDirty must be called first to cache the change
+const isDirty = cache.isDirty(outputFile, JSON.stringify(playlist), JSON.stringify({dependParams, programParams})) || dependencyIsDirty || argvGet(['--no-cache', '-nc'], false)
+
+if (isDirty) {
+    console.log('>>> No cache match: generating new file')
+    generateOutput()
+} else {
+    console.log('Cached version found; no files generated.')
+}
+
+cache.saveCache()
 
 console.log('Generation completed without errors')
