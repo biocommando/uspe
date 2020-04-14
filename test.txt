@@ -30,14 +30,15 @@ part main:
 
 part add_effects:
     add_effect arpseq overdrive 7
-    add_effect arpseq amplify 0.6
+    add_effect arpseq amplify 0.4
     add_effect arpseq delay 230 0.4 0.6
     add_effect arpseq pan 0.3
-    add_effect bassline amplify 0.7
+    add_effect bassline amplify 0.4
+    add_effect drumloop amplify 1.5
     add_effect keys tone 1 0.1
     add_effect keys flanger 1.5 0.2 0.2 0.7 0.5
     add_effect keys delay 346 0.3 0.5
-    add_effect keys amplify 8
+    add_effect keys amplify 4
     add_effect keys pan 0.7
 
 part loop_with_keys:
