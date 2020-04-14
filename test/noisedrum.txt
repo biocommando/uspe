@@ -1,0 +1,16 @@
+# Usage:
+# depends drum.wav test/noisedrum.txt decay=<decay time in ms>
+
+part main:
+    script;
+        const decay_secs = Number(d.decay) / 1000;
+        const decay_samples = decay_secs * g.sample_rate;
+        let idx = 0;
+        const noiseSynth = () => {
+            if (idx > decay_samples) return 0;
+            return (1 - idx++/decay_samples) * (2 - 2 * Math.random());
+        };
+        synths.push(noiseSynth);
+        /* Add 1 sec as margin */
+        return SILENCE_FILE + ' ' + secondsToPos(decay_secs + 1);
+    script_end;

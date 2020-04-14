@@ -1,0 +1,6 @@
+tempo = 130
+
+include lib/synth
+
+part main:
+   arpeggiator lib/synth-soft-bass.json c3,c3,c4,c3,c#3,c3,c3,c4

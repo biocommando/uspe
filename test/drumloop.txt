@@ -1,0 +1,27 @@
+depends test/kick.wav test/sinekick.txt decay=200;pitch_decay_rate=-1.5;base_freq=100
+depends test/hat.wav test/noisedrum.txt decay=70
+depends test/snare.wav test/noisedrum.txt decay=130
+
+include lib/step_seq
+include lib/fx
+
+tempo = 130
+
+sample_directory = "test/"
+
+volume = 0.7
+
+channels = 2
+
+part main:
+    add_effect kick distortion 6 .5
+    add_effect hat tone 1 0.15
+    add_effect hat pan 0.9
+    add_effect snare tone 0.1 0
+    add_effect snare distortion 15 .5
+    add_effect snare pan 0.2
+    add_effect snare tone 0.2 0
+    add_effect snare amplify 0.4
+    step_seq 1000100010001000 kick
+    step_seq 0010001000100010 hat
+    step_seq 0000100001001001 snare

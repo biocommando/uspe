@@ -1,0 +1,23 @@
+# Usage:
+# depends kick.wav test/sinekick.txt decay=<time in ms>;pitch_decay_rate=<octaves during decay>;base_freq=<hz>
+
+part main:
+    script;
+        const decay_secs = Number(d.decay) / 1000;
+        const decay_samples = decay_secs * g.sample_rate;
+        const pitchDecayRate = Math.pow(2, Number(d.pitch_decay_rate) / decay_samples);
+        const baseFreq = Number(d.base_freq);
+        let phaseIncrement = Math.PI * 2 * baseFreq / g.sample_rate;
+        let phase = 0;
+        let idx = 0;
+        const kickSynth = () => {
+            if (idx >= decay_samples) return 0;
+            phaseIncrement *= pitchDecayRate;
+            phase += phaseIncrement;
+            return Math.sin(phase) * (1 - idx++ / decay_samples);
+        };
+        
+        synths.push(kickSynth);
+        /* Add 1 sec as margin */
+        return SILENCE_FILE + ' ' + secondsToPos(decay_secs + 1);
+    script_end;

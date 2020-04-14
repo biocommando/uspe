@@ -1,0 +1,36 @@
+# Contains tools for manipulating samples
+
+# Used for simply stretching samples by manipulating playback speed.
+# Usage:
+# stretch <filename> <base note> <target note>
+# E.g.
+# stretch wavefile.wav c5 c6
+# Will play the wavefile.wav one octave higher
+part stretch:
+    script;
+        const {translateNote} = require('./lib/translate-note');
+        let filename = '$1';
+        if (!filename.endsWith('.wav')) filename += '.wav';
+        const wave = waveHandler._16Bit.read(filename);
+        let idx = 0;
+        const baseNote = translateNote('$2');
+        const targetNote = translateNote('$3');
+        const diff = targetNote - baseNote;
+        const freqRatio = Math.pow(2, diff / 12);
+        const stretcher = (ch, numOfChannels) => {
+            if (idx >= wave[0].length) return 0;
+            let out;
+            if (ch === 1 && wave.length === 1) {
+                out = wave[0][Math.floor(idx)];
+            } else {
+                out = wave[ch][Math.floor(idx)];
+            }
+            
+            if (ch === numOfChannels - 1) idx += freqRatio;
+            return out;
+        };
+        synths.push(stretcher);
+        const silenceInTheEnd = getIfResolved('$4', Number, 4);
+        const pos = samplesToPos(wave[0].length) + silenceInTheEnd;
+        return SILENCE_FILE + ' ' + pos;
+    script_end;

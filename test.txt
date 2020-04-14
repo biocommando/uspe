@@ -1,0 +1,47 @@
+# A test file for demonstrating USPE functionality.
+#
+# USPE is not intended to be used for generating all
+# its input wavefiles but by generating them
+# we avoid the need to upload them to git.
+
+depends test/drumloop.wav test/drumloop.txt
+depends test/arpseq.wav test/arpseq.txt
+depends test/bassline.wav test/bassline.txt
+depends test/keys.wav test/keys.txt
+
+tempo = 130
+channels = 2
+
+sample_directory = "test/"
+
+include lib/loop
+include lib/inc
+include lib/fx
+
+part main:
+    add_effects
+    repeat_loop 2 bassline
+    inc 2
+    repeat_loop 2 bassline drumloop
+    inc 2
+    loop_with_keys
+    loop_with_keys
+    keys.wav 0 0 30000
+
+part add_effects:
+    add_effect arpseq overdrive 7
+    add_effect arpseq amplify 0.6
+    add_effect arpseq delay 230 0.4 0.6
+    add_effect arpseq pan 0.3
+    add_effect bassline amplify 0.7
+    add_effect keys tone 1 0.1
+    add_effect keys flanger 1.5 0.2 0.2 0.7 0.5
+    add_effect keys delay 346 0.3 0.5
+    add_effect keys amplify 8
+    add_effect keys pan 0.7
+
+part loop_with_keys:
+    repeat_loop 1 bassline drumloop keys arpseq
+    inc
+    repeat_loop 1 bassline drumloop arpseq
+    inc

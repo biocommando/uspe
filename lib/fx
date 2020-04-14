@@ -1,0 +1,28 @@
+# Adds an effect for the wavefile. Subsequent calls will add more effects to the effect chain.
+# Usage:
+# add_effect <sample_name> <effect_name> <effect_parameters>
+# Available effects + params (if not otherwise stated, range of params is 0...1):
+# delay         delay_ms    feed   wet
+# distortion    gain        clip
+# overdrive     gain
+# flanger       freq_hz     delay  depth       wet         stereo_phase
+# compressor    threshold   ratio  attack_ms   release_ms
+# amplify       gain
+# pan           LR_ratio
+# tremolo       freq_hz     depth
+# tone          LPF_cutoff  HPF_cutoff
+
+part add_effect:
+    script;
+        const all = require('./lib/effects').fx(g.sample_rate);
+        let filename = '$1';
+        if (!filename.endsWith('.wav')) filename += '.wav';
+        /* guid for fx chain */
+        const guid = 'edddf7da-790b-11ea-bc55-0242ac130003';
+        if (fx[filename] === undefined) {
+            fx[filename + guid] = [];
+            fx[filename] = (x, ch) => fx[filename + guid].reduce((a, b) => b(a, ch), x);
+        }
+        fx[filename + guid].push(all['$2'](Number('$3'), Number('$4'), Number('$5'), Number('$6'), Number('$7')));
+        return ''
+    script_end;

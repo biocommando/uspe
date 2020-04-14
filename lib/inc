@@ -1,0 +1,8 @@
+# Used for incrementing song position by bars
+# Usage:
+# inc <optional: number of bars, default = 1>
+
+part inc:
+  script;
+    return '+ ' + (variables.divisor * (getIfResolved('$1', Number, 1)))
+  script_end;

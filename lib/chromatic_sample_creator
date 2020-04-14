@@ -1,0 +1,8 @@
+# Usage:
+# depends stretch_result.wav lib/chromatic_sample_creator file=file_to_stretch.wav;base=C5;target=C6
+# -> Output contains file_to_stretch.wav sped up by factor 2
+
+include lib/sample_tools
+
+part main:
+    script; return `stretch ${d.file} ${d.base} ${d.target}`;

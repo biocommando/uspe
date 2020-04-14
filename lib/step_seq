@@ -1,0 +1,22 @@
+# Step sequencer for a single sample
+# Usage:
+# step_seq <sequence> <sample_name> <optional: ticks_per_step, default = 1>
+# sequence is a sequence of ones and zeroes indicating if the sample
+# should be triggered within that step
+# e.g.:
+# step_seq 1000100010001000 kickdrum
+
+part step_seq:
+    script;
+        if(!v.c) v.c = 0;
+        const steps = '$1'.split('').map(Number),
+            speed = getIfResolved('$3', Number, 1);
+        const step = steps[v.c];
+        v.c++;
+        r = v.c < steps.length;
+        if (step) return 'trigger_GUID_91f99a6a-7905-11ea-bc55-0242ac130003 $2 ' + ((v.c - 1) * speed);
+        return ''
+    script_end;
+
+part trigger_GUID_91f99a6a-7905-11ea-bc55-0242ac130003:
+    $1.wav $2

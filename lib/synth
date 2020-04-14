@@ -1,0 +1,33 @@
+# Adds a simple polyphonic synthetized sequence to the playlist.
+# Also provides an arpeggiator
+# Usage:
+# add_synth <preset_json_filename> <sequence>
+# The format of the sequence:
+# <note_num>-<note_length>,<note_num>-<note_length>,...@<position>;...
+# note_num can be alternatively a letter with octave number, like a#2 (case insensitive)
+#
+# arpeggiator <preset_json_filename> <notes> <optional: note_length, default: 2> <optional: gate_length, default: 1> <optional: repetitions, default: 1>
+# notes is a comma separated list of notes
+
+part add_synth:
+    script;
+        const {createSynth} = require('./lib/simple-synth');
+        let endMarkerPos = 0;
+        const set_endMarkerPos = p => endMarkerPos = p;
+        synths.push(createSynth('$1', '$2', g.tempo, g.sample_rate, set_endMarkerPos));
+        const s = '$2'.split('@');
+        return SILENCE_FILE + ' ' + endMarkerPos
+    script_end;
+        
+part arpeggiator:
+    script;
+        const seq = [];
+        const noteLength = getIfResolved('$3', Number, 2);
+        const gateLength = getIfResolved('$4', Number, 1);
+        const repetitions = getIfResolved('$5', Number, 1);
+        const notes = '$2'.split(',').map(n => n + '-' + gateLength);
+        for (let i = 0; i < repetitions; i++) {
+            seq.push(...notes.map((n, j) => n + '@' + ((i * notes.length + j) * noteLength)));
+        }
+        return 'add_synth $1 ' + seq.join(';')
+    script_end;
