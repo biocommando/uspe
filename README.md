@@ -97,6 +97,9 @@ Any non-script line that has unresolved parameters is deleted.
 
 The greatest benefit from parametrized parts comes when using scripts.
 
+If the part name is prepended by @ character, then the last parameter given to the part will get a
+special meaning: the last parameter is the position offset in steps for the referenced part.
+
 # Scripts
 
 Scripts have the following syntax:
@@ -123,7 +126,7 @@ to the scripts. The official API, though, contains the following convenience acc
 - variable v: local variables set within the script (persistent between executions while r == true)
 - variable r: set this to true to re-execute the same script, used for generating multiple lines from the script
 - variable d: dependency parameters (explained later); all paramters are strings
-- constant SILENCE_FILE: special virtual wave file that can be used to trick the engine to generate longer files that it normally would
+- constant SILENCE_FILE: special virtual wave file that can be used to trick the engine to generate longer files than it normally would
 - function isResolved(string): used to check if parameter is resolved, usage e.g.: isResolved('$1')
 - function getIfResolved(string, fn, defaultVal): returns fn(string) if parameter is resolved, otherwise defaultVal
 - function samplesToPos(n): converts number of samples to position
