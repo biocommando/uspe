@@ -13,6 +13,8 @@ node compile-playlist.js -i input.txt -o output.wav
 Note: USPE supports only 16 bit wave files. The used samples should have the same sample rate as the
 output file (i.e. sample rate conversion is not done by the tool).
 
+# Building blocks
+
 The building blocks are rather simple. You have variable definitions for setting up some common
 parameters such as tempo and parts that contain the information how to glue your song together.
 
@@ -21,6 +23,29 @@ Parts can contain four kinds of commands:
 - song position incrementation
 - references to other parts
 - scripts
+
+Each file generating an output wave file has at least one part named "main". The *main* part can
+contain references to other parts.
+
+# Declaring variables
+
+Declaring variables can be done using the syntax:
+```
+<number variable> = <number value>
+<string variable> = "<string value>"
+```
+
+Available variables:
+
+|Variable|Default|Description|
+|---|---|---|
+|tempo|120|Tempo in beats per minute|
+|divisor|16|The divisor used to divide a bar to steps|
+|volume|0.95|The volume of the output file (0-1)|
+|sample_rate|44100|Sample rate in Hz|
+|sample_directory|""|Path that is prepended to the sample filenames|
+|normalize|1|1 = normalize the output to the *volume*, 0 = do not normalize the output (can cause clipping; useful for e.g. generated drumloops)|
+|channels|1|Number of channels (1 or 2)|
 
 # Wave file insertion
 
@@ -39,7 +64,7 @@ Song position incrementation has the following syntax:
 A basic example using just wave file insertion and song position incrementation commands could be:
 ```
 tempo = 130
-sample_directory = "/path/to/dir/terminated/with/separator/"
+sample_directory = "/path/to/dir/"
 
 part main:
     backing.wav
@@ -76,7 +101,7 @@ The greatest benefit from parametrized parts comes when using scripts.
 
 Scripts have the following syntax:
 ```
-script;<script on a single line
+script;<script on a single line>
 ```
 or
 ```
@@ -106,7 +131,7 @@ to the scripts. The official API, though, contains the following convenience acc
 - variable synths: array of synthethizers (explained below)
 - variable effects: map of effects (explained below)
 
-# Synthetizers API:
+# Synthetizers API
 
 Synthetizers can be added by appending a function with the following signature to *synths* array:
 ```
@@ -136,7 +161,7 @@ script;
 script_end;
 ```
 
-# Effects API:
+# Effects API
 
 Effects are applied on per sample basis. The object *effects* contains a map with the sample filename as the key
 and as the value a function with a similar signature as in the synthethizer API, with the input sample argument
@@ -187,18 +212,6 @@ example above the variable would have the following contents:
 ```
 
 Note that the sample_directory variable is not prepended to the file paths.
-
-# Available variables
-
-|Variable|Default|Description|
-|---|---|---|
-|tempo|120|Tempo in beats per minute|
-|divisor|16|The divisor used to divide a bar to steps|
-|volume|0.95|The volume of the output file (0-1)|
-|sample_rate|44100|Sample rate in Hz|
-|sample_directory|""|Path that is prepended to the sample filenames|
-|normalize|1|1 = normalize the output to the *volume*, 0 = do not normalize the output (can cause clipping; useful for e.g. generated drumloops)|
-|channels|1|Number of channels (1 or 2)|
 
 # Program parameters
 
