@@ -131,6 +131,7 @@ to the scripts. The official API, though, contains the following convenience acc
 - function getIfResolved(string, fn, defaultVal): returns fn(string) if parameter is resolved, otherwise defaultVal
 - function samplesToPos(n): converts number of samples to position
 - function secondsToPos(n): converts seconds to position
+- function setCacheStatus(object): sets a value that contains cache information of the script's dependencies
 - variable synths: array of synthethizers (explained below)
 - variable effects: map of effects (explained below)
 

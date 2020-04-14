@@ -11,6 +11,8 @@
 
 part add_synth:
     script;
+        const jsonTimeStamps = fs.readdirSync('lib').filter(x => x.endsWith('.json')).map(x => x+';'+fs.statSync('lib/'+x).mtimeMs).join(',');
+        setCacheStatus([fs.statSync('./lib/simple-synth.js').mtimeMs, fs.statSync('./lib/translate-note.js').mtimeMs, jsonTimeStamps]);
         const {createSynth} = require('./lib/simple-synth');
         let endMarkerPos = 0;
         const set_endMarkerPos = p => endMarkerPos = p;

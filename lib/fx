@@ -14,6 +14,7 @@
 
 part add_effect:
     script;
+        setCacheStatus(fs.statSync('./lib/effects.js').mtimeMs);
         const all = require('./lib/effects').fx(g.sample_rate);
         let filename = '$1';
         if (!filename.endsWith('.wav')) filename += '.wav';

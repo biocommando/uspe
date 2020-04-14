@@ -75,15 +75,15 @@ let pos = 0
 let dependencyIsDirty = false
 
 const includeFile = file => {
-    if (filesIncluded.includes(file)) {
+    if (filesIncluded.some(entry => entry.file === file)) {
         console.log('File ' + file + ' already included')
         return
     }
-    filesIncluded.push(file)
-    fs.readFileSync(file).toString().replace(/\$\$(\d+?)/g, (_, n) => programParams[Number(n) - 1])
+    const contents = fs.readFileSync(file).toString().replace(/\$\$(\d+?)/g, (_, n) => programParams[Number(n) - 1])
         .replace(/script;.+?script_end;/sg, x => x.replace(/\r?\n/g, ' ').replace('script_end;', ''))
         .replace(/\\ *\r?\n/g, ' ')
-        .split(/\r?\n/).map(x => x.trim()).filter(x => x !== '' && x[0] !== '#')
+    filesIncluded.push({file, contents})
+    contents.split(/\r?\n/).map(x => x.trim()).filter(x => x !== '' && x[0] !== '#')
         .forEach(line => {
             if (line.startsWith('script;')) {
                 commands[commands.length - 1].body.push(line)
@@ -101,7 +101,7 @@ const includeFile = file => {
                 }
                 const pr = child_process.spawnSync('node', args)
                 const stdoutStr = pr.stdout.toString()
-                if (!dependencyIsDirty && stdoutStr.includes('>>> No cache match')) {
+                if (!dependencyIsDirty && stdoutStr.includes('[' + cache.guid + ']')) {
                     dependencyIsDirty = true
                 }
                 console.log( 'EXECUTION OUTPUT:',
@@ -129,6 +129,7 @@ const includeFile = file => {
 }
 
 includeFile(inputFile)
+let scriptCacheControl = ''
 
 const executePart = (name, params, offset = 0) => {
     const part = commands.find(c => c.cmd === 'part' && c.name === name)
@@ -136,7 +137,7 @@ const executePart = (name, params, offset = 0) => {
     part
         .body
         .map(line => line.replace(/(\$\d+?)/g, (_, n) => { const p = params[Number(n.substr(1)) - 1]; return p === undefined ? n : p;}))
-        .forEach(line => {
+        .forEach((line, lineIdx) => {
             // test for unresolved variables
             if (!line.startsWith('script;') && line.includes('$')) return
             let reExecScript = false
@@ -154,6 +155,11 @@ const executePart = (name, params, offset = 0) => {
                         return defaultVal
                     }
                     const d = dependParams
+                    
+                    const setCacheStatus = status => {
+                        const header = '<<' + lineIdx + ' ' + name + '>>'
+                        if (!scriptCacheControl.includes(header)) scriptCacheControl += header + JSON.stringify(status)
+                    }
                     
                     const samplesToPos = n => n * g.divisor / 60 * g.tempo / 4 / g.sample_rate
                     const secondsToPos = s => samplesToPos(s * g.sample_rate)
@@ -258,10 +264,15 @@ const generateOutput = () => {
 }
 
 // cache.isDirty must be called first to cache the change
-const isDirty = cache.isDirty(outputFile, JSON.stringify(playlist), JSON.stringify({dependParams, programParams})) || dependencyIsDirty || argvGet(['--no-cache', '-nc'], false)
+// rationale for including objects to cache hashing:
+// - playlist: if some scripts are not deterministic, this is required to recognize that
+// - filesIncluded: file contents are saved after string substitution so all effective parameter values are already present.
+//                  Files can have e.g. changes in effects or other non-playlist-modifying files so they're needed.
+// - scriptCacheControl: for dependencies of all scripts
+const isDirty = cache.isDirty(outputFile, [playlist, filesIncluded, scriptCacheControl]) || dependencyIsDirty || argvGet(['--no-cache', '-nc'], false)
 
 if (isDirty) {
-    console.log('>>> No cache match: generating new file')
+    console.log('[' + cache.guid + '] No cache match: generating new file')
     generateOutput()
 } else {
     console.log('Cached version found; no files generated.')
