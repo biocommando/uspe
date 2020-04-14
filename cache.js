@@ -4,7 +4,7 @@ const crypto = require('crypto')
 let cache
 
 const calculateHash = str => {
-    const shasum = crypto.createHash('sha1')
+    const shasum = crypto.createHash('sha256')
     shasum.update(str)
     return shasum.digest('hex')
 }
