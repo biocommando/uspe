@@ -11,6 +11,10 @@
 # pan           LR_ratio
 # tremolo       freq_hz     depth
 # tone          LPF_cutoff  HPF_cutoff
+#
+# Supports also custom fx; instead of effect name input effect script path.
+# The effect must implement interface:
+# module.exports = { fx: samplerate => params => (inputSample, channel) => outputSample }
 
 part add_effect:
     script;
@@ -24,6 +28,12 @@ part add_effect:
             fx[filename + guid] = [];
             fx[filename] = (x, ch) => fx[filename + guid].reduce((a, b) => b(a, ch), x);
         }
-        fx[filename + guid].push(all['$2'](Number('$3'), Number('$4'), Number('$5'), Number('$6'), Number('$7')));
+        const fxKey = '$2';
+        let fxVal = all[fxKey];
+        if (!fxVal) {
+            fxVal = require(fxKey).fx(g.sample_rate);
+        }
+        const params = '$range(3-99 ;)'.split(';').map(Number);
+        fx[filename + guid].push(fxVal(...params));
         return ''
     script_end;

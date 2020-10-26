@@ -5,6 +5,7 @@
 # we avoid the need to upload them to git.
 
 depends test/drumloop.wav test/drumloop.txt
+depends test/fasthats.wav test/fasthats.txt
 depends test/arpseq.wav test/arpseq.txt
 depends test/bassline.wav test/bassline.txt
 depends test/keys.wav test/keys.txt
@@ -26,6 +27,8 @@ part main:
     inc 2
     loop_with_keys
     loop_with_keys
+    repeat_loop 4 bassline drumloop fasthats
+    inc 4
     keys.wav 0 0 30000
 
 part add_effects:
@@ -33,7 +36,7 @@ part add_effects:
     add_effect arpseq amplify 0.4
     add_effect arpseq delay 230 0.4 0.6
     add_effect arpseq pan 0.3
-    add_effect bassline amplify 0.4
+    add_effect bassline amplify 0.8
     add_effect drumloop amplify 1.5
     add_effect keys tone 1 0.1
     add_effect keys flanger 1.5 0.2 0.2 0.7 0.5

@@ -8,8 +8,7 @@
 # Will play the wavefile.wav one octave higher
 part stretch:
     script;
-        setCacheStatus(fs.statSync('./lib/translate-note.js').mtimeMs);
-        const {translateNote} = require('./lib/translate-note');
+        const {translateNote} = requirelib('translate-note');
         let filename = '$1';
         if (!filename.endsWith('.wav')) filename += '.wav';
         const wave = waveHandler._16Bit.read(filename);

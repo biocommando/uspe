@@ -11,25 +11,50 @@
 
 part add_synth:
     script;
-        const jsonTimeStamps = fs.readdirSync('lib').filter(x => x.endsWith('.json')).map(x => x+';'+fs.statSync('lib/'+x).mtimeMs).join(',');
-        setCacheStatus([fs.statSync('./lib/simple-synth.js').mtimeMs, fs.statSync('./lib/translate-note.js').mtimeMs, jsonTimeStamps]);
-        const {createSynth} = require('./lib/simple-synth');
+        const jsonTimeStamps = fs.readdirSync('lib').filter(x => x.match(/^synth-.*\.json$/)).map(x => x+';'+fs.statSync('lib/'+x).mtimeMs).join(',');
+        const s = require('$1');
+        const paramsStr = '$range(2-99 ;sep-735c0020-2db6-473e-b9eb-b27613896a97)';
+        let allParams = paramsStr.split(';sep-735c0020-2db6-473e-b9eb-b27613896a97');
         let endMarkerPos = 0;
         const set_endMarkerPos = p => endMarkerPos = p;
-        synths.push(createSynth('$1', '$2', g.tempo, g.sample_rate, set_endMarkerPos));
-        const s = '$2'.split('@');
-        return SILENCE_FILE + ' ' + endMarkerPos
+        let synth;
+        if (s.hasOnEvent && allParams.find(x => x.startsWith('seq='))) {
+            const ssw = requirelib('synth-seq-wrapper');
+            const seq = allParams.find(x => x.startsWith('seq=')).substr(4);
+            allParams = allParams.filter(x => !x.startsWith('seq='));
+            const synthObj = s.synthCreatorWrapper(allParams, g.tempo, g.sample_rate, set_endMarkerPos);
+            synth = ssw.getSequencedEventSender(seq, g.tempo, g.sample_rate, synthObj, set_endMarkerPos);
+        } else {
+            synth = s.synthCreatorWrapper(allParams, g.tempo, g.sample_rate, set_endMarkerPos);
+        }
+        let preset = '';
+        if (synth.setPreset && allParams.find(x => x.startsWith('preset='))) {
+            const file = allParams.find(x => x.startsWith('preset=')).replace('preset=', '');
+            const preset = fs.readFileSync(file).toString();
+            const json = JSON.parse(preset);
+            synth.setPreset(json);
+        }
+        setCacheStatus([fs.statSync('$1').mtimeMs, fs.statSync('./lib/translate-note.js').mtimeMs, jsonTimeStamps, preset]);
+        synths.push(synth);
+        return SILENCE_FILE + ' ' + endMarkerPos;
     script_end;
-        
+    
 part arpeggiator:
     script;
         const seq = [];
-        const noteLength = getIfResolved('$3', Number, 2);
-        const gateLength = getIfResolved('$4', Number, 1);
-        const repetitions = getIfResolved('$5', Number, 1);
+        const paramsStr = '$range(3-99 ;sep-735c0020-2db6-473e-b9eb-b27613896a97)';
+        const namedParams = requirelib('named-params');
+        let allParams = paramsStr.split(';sep-735c0020-2db6-473e-b9eb-b27613896a97');
+        allParams = namedParams.parse(allParams);
+        const noteLength = allParams.notelen !== undefined ? Number(allParams.notelen) : 2;
+        const gateLength = allParams.gate !== undefined ? Number(allParams.gate) : 1;
+        const repetitions = allParams.repeat !== undefined ? Number(allParams.repeat) : 1;
+        delete allParams.notelen;
+        delete allParams.gate;
+        delete allParams.repeat;
         const notes = '$2'.split(',').map(n => n + '-' + gateLength);
         for (let i = 0; i < repetitions; i++) {
             seq.push(...notes.map((n, j) => n + '@' + ((i * notes.length + j) * noteLength)));
         }
-        return 'add_synth $1 ' + seq.join(';')
+        return 'add_synth $1 seq=' + seq.join(';') + ' ' + namedParams.stringify(allParams);
     script_end;

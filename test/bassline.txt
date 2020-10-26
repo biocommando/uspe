@@ -3,4 +3,6 @@ tempo = 130
 include lib/synth
 
 part main:
-   arpeggiator lib/synth-bass.json c2,c2,c2,c1,d#2,c2,c2,c1,c2,c2,c2,c1,d#3,d#2,c#2,c3 1
+   arpeggiator ./lib/additive-synth.js c2,c2,c2,c1,d#2,c2,c2,c1,c2,c2,c2,c1,d#3,d#2,c#2,c3 notelen=1 \
+      preset=./lib/additive-waveforms/square.json \
+      decay=0.2 sustain=0.2 release=0.05

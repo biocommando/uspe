@@ -25,8 +25,14 @@ const fs = require('fs')
 const child_process = require('child_process')
 const waveHandler = require('./wave-file-handler')
 const cache = require('./cache')
+const fileQueue = require('./file-queue')
 
 const SILENCE_FILE = 'silence-GUID-24732f5f-a7ea-4727-86a7-317979bc47ee.wav'
+requirelib = lib => {
+    const file = `./lib/${lib}`
+    requirelib.setCacheStatus(fs.statSync(file.endsWith('.js') ? file : `${file}.js`).mtimeMs)
+    return require(file)
+}
 
 const argvGet = (args, required = true) => {
     for (let i = 0; i < args.length; i++) {
@@ -79,7 +85,8 @@ const includeFile = file => {
         console.log('File ' + file + ' already included')
         return
     }
-    const contents = fs.readFileSync(file).toString().replace(/\$\$(\d+?)/g, (_, n) => programParams[Number(n) - 1])
+    const contents = fs.readFileSync(file).toString()
+        .replace(/\$\$(\d+?)/g, (_, n) => programParams[Number(n) - 1])
         .replace(/script;.+?script_end;/sg, x => x.replace(/\r?\n/g, ' ').replace('script_end;', ''))
         .replace(/\\ *\r?\n/g, ' ')
     filesIncluded.push({file, contents})
@@ -111,7 +118,7 @@ const includeFile = file => {
                 if (pr.status !== 0) {
                     throw 'Aborting because of errors'
                 }
-            } else if (line.indexOf('=') > -1) {
+            } else if (line.match(/^\s*[^\s]+?\s*=/)) {
                 const split = line.split('=').map(x => x.trim())
                 if (split[1].match(/".*"/)) {
                     variables[split[0]] = split[1].replace(/"/g, '')
@@ -136,7 +143,12 @@ const executePart = (name, params, offset = 0) => {
     console.log('Executing part', name, params)
     part
         .body
-        .map(line => line.replace(/(\$\d+?)/g, (_, n) => { const p = params[Number(n.substr(1)) - 1]; return p === undefined ? n : p;}))
+        .map(line => line.replace(/\$range\((\d+?)\-(\d+?) (.+?)\)/g, (_, start, end, sep) => {
+            const str = Array(Number(end) - Number(start) + 1).fill().map((_, i) => '$' + (i + Number(start))).join(sep);
+            console.log('Range repl', str, start, end, sep)
+            return str
+        }))
+        .map(line => line.replace(/(\$\d\d*)/g, (_, n) => { const p = params[Number(n.substr(1)) - 1]; return p === undefined ? n : p;}))
         .forEach((line, lineIdx) => {
             // test for unresolved variables
             if (!line.startsWith('script;') && line.includes('$')) return
@@ -160,11 +172,13 @@ const executePart = (name, params, offset = 0) => {
                         const header = '<<' + lineIdx + ' ' + name + '>>'
                         if (!scriptCacheControl.includes(header)) scriptCacheControl += header + JSON.stringify(status)
                     }
+                    requirelib.setCacheStatus = setCacheStatus
                     
                     const samplesToPos = n => n * g.divisor / 60 * g.tempo / 4 / g.sample_rate
                     const secondsToPos = s => samplesToPos(s * g.sample_rate)
                     
                     let r = false
+                    console.log('EXECUTING: <<<'+ line + '>>>')
                     line = eval('(()=>{' + line.replace('script;', '') + '})()')
                     console.log('Script execution result:', line)
                     if (r) console.log('Re-exec flag set')
@@ -175,7 +189,7 @@ const executePart = (name, params, offset = 0) => {
                     }
                 }
                 
-                const split = line.split(' ')
+                const split = line.split(/  */)
                 
                 if (split[0].includes('.wav')) {
                     const wavPos = split[1] !== undefined ? Number(split[1]) : 0
@@ -198,6 +212,7 @@ const executePart = (name, params, offset = 0) => {
 
 executePart('main', [])
 playlist.sort((a,b) => a.pos - b.pos).forEach(item => item.posSample = Math.round(item.pos / variables.divisor * 60 / variables.tempo * 4 * variables.sample_rate))
+fileQueue.init(waveHandler._16Bit.read, playlist.map(item => variables.sample_directory + item.sample))
 
 console.log('Generating output with playlist and variables:', playlist.map(o => Object.keys(o).filter(k => o[k] !== undefined).map(k => `${k}=${o[k]}`).join(', ')).join('\n'), variables)
 
@@ -214,7 +229,8 @@ const generateOutput = () => {
             if (playlist[pl_i].sample === SILENCE_FILE) {
                 data = [[0]]
             } else {
-                data = waveHandler._16Bit.read(variables.sample_directory + playlist[pl_i].sample)
+                // data = waveHandler._16Bit.read(variables.sample_directory + playlist[pl_i].sample)
+                data = fileQueue.loadNext()
             }
             const effect = fx[playlist[pl_i].sample]
             const startOffset = playlist[pl_i].startOffset ? playlist[pl_i].startOffset : 0
@@ -247,7 +263,7 @@ const generateOutput = () => {
     for (let i = 0; i < signal[0].length; i++) {
         for (let ch = 0; ch < variables.channels; ch++) {
             if (signal[ch][i] === undefined) signal[ch][i] = 0
-            synths.forEach(synth => signal[ch][i] += synth(ch, variables.channels))
+            synths.forEach(synth => signal[ch][i] += synth.process(ch, variables.channels))
             peak = Math.abs(signal[ch][i]) > peak ? Math.abs(signal[ch][i]) : peak
         }
     }

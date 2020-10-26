@@ -1,0 +1,10 @@
+{
+    "expression": [
+        "(harmonics, presetparams) => {",
+        "harmonics.splice();",
+        "const numiters = presetparams.iterations ? Number(presetparams.iterations) : 500;",
+        "for(let i = 1; i < numiters * 2; i += 2)",
+        "harmonics.push({f: i, a: 1/i});",
+        "}"
+    ]
+}

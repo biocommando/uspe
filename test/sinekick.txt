@@ -17,7 +17,7 @@ part main:
             return Math.sin(phase) * (1 - idx++ / decay_samples);
         };
         
-        synths.push(kickSynth);
-        /* Add 1 sec as margin */
-        return SILENCE_FILE + ' ' + secondsToPos(decay_secs + 1);
+        synths.push({process: kickSynth});
+        /* Add 0.2 sec as margin */
+        return SILENCE_FILE + ' ' + secondsToPos(decay_secs + 0.2);
     script_end;

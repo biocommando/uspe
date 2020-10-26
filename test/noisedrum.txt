@@ -10,7 +10,7 @@ part main:
             if (idx > decay_samples) return 0;
             return (1 - idx++/decay_samples) * (2 - 2 * Math.random());
         };
-        synths.push(noiseSynth);
+        synths.push({process: noiseSynth});
         /* Add 1 sec as margin */
         return SILENCE_FILE + ' ' + secondsToPos(decay_secs + 1);
     script_end;

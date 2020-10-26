@@ -1,0 +1,16 @@
+depends test/hat_short.wav test/noisedrum.txt decay=30
+
+include lib/step_seq
+include lib/fx
+
+tempo = 130
+
+sample_directory = "test/"
+
+channels = 2
+
+part main:
+    add_effect hat_short pan 0.7
+    add_effect hat_short tone 1 0.15
+    add_effect hat_short tremolo 0.5417 0.8
+    step_seq 1111111111111111 hat_short
