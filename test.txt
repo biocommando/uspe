@@ -9,6 +9,7 @@ depends test/fasthats.wav test/fasthats.txt
 depends test/arpseq.wav test/arpseq.txt
 depends test/bassline.wav test/bassline.txt
 depends test/keys.wav test/keys.txt
+depends test/stretch_arpseq.wav lib/chromatic_sample_creator file=test/arpseq;base=C5;target=C4
 
 tempo = 130
 channels = 2
@@ -21,6 +22,10 @@ include lib/fx
 
 part main:
     add_effects
+    stretch_arpseq.wav 0
+    inc 2
+    stretch_arpseq.wav 0
+    inc 2
     repeat_loop 2 bassline
     inc 2
     repeat_loop 2 bassline drumloop
@@ -32,6 +37,7 @@ part main:
     keys.wav 0 0 30000
 
 part add_effects:
+    add_effect stretch_arpseq flanger 1.5 0.2 0.2 0.7 0.5
     add_effect arpseq overdrive 7
     add_effect arpseq amplify 0.4
     add_effect arpseq delay 230 0.4 0.6

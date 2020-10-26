@@ -29,7 +29,7 @@ part stretch:
             if (ch === numOfChannels - 1) idx += freqRatio;
             return out;
         };
-        synths.push(stretcher);
+        synths.push({process: stretcher});
         const silenceInTheEnd = getIfResolved('$4', Number, 4);
         const pos = samplesToPos(wave[0].length) + silenceInTheEnd;
         return SILENCE_FILE + ' ' + pos;

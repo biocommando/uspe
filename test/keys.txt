@@ -5,8 +5,6 @@ include lib/synth
 volume = 1
 
 part main:
-#   add_synth ./lib/simple-synth.js lib/synth-piano.json c5-3,d#5-3,g5-3,c6-3@0;c5-3,d#5-3,g5-3,c6-3@6;c5-1,d#5-1,g5-1,c6-1@12;g4-3,a#4-3,c5-3@14
-# harmonics=1,1;2,0.5;3,0.25;4,0.12;5,0.5;6,0.03
    add_synth \
         ./lib/additive-synth.js \
         seq=c5-3,d#5-3,g5-3,c6-3@0;c5-3,d#5-3,g5-3,c6-3@6;c5-1,d#5-1,g5-1,c6-1@12;g4-3,a#4-3,c5-3@14 \
