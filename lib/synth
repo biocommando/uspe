@@ -11,16 +11,17 @@
 
 part add_synth:
     script;
-        const jsonTimeStamps = fs.readdirSync('lib').filter(x => x.match(/^synth-.*\.json$/)).map(x => x+';'+fs.statSync('lib/'+x).mtimeMs).join(',');
+        const namedParamsParser = requirelib('named-params');
         const s = require('$1');
         const paramsStr = '$range(2-99 ;sep-735c0020-2db6-473e-b9eb-b27613896a97)';
         let allParams = paramsStr.split(';sep-735c0020-2db6-473e-b9eb-b27613896a97');
         let endMarkerPos = 0;
         const set_endMarkerPos = p => endMarkerPos = p;
         let synth;
-        if (s.hasOnEvent && allParams.find(x => x.startsWith('seq='))) {
+        const namedParams = namedParamsParser.parse(allParams);
+        if (s.hasOnEvent && namedParams.seq) {
             const ssw = requirelib('synth-seq-wrapper');
-            const seq = allParams.find(x => x.startsWith('seq=')).substr(4);
+            const seq = namedParams.seq;
             allParams = allParams.filter(x => !x.startsWith('seq='));
             const synthObj = s.synthCreatorWrapper(allParams, g.tempo, g.sample_rate, set_endMarkerPos);
             synth = ssw.getSequencedEventSender(seq, g.tempo, g.sample_rate, synthObj, set_endMarkerPos);
@@ -28,13 +29,13 @@ part add_synth:
             synth = s.synthCreatorWrapper(allParams, g.tempo, g.sample_rate, set_endMarkerPos);
         }
         let preset = '';
-        if (synth.setPreset && allParams.find(x => x.startsWith('preset='))) {
-            const file = allParams.find(x => x.startsWith('preset=')).replace('preset=', '');
+        if (synth.setPreset && namedParams.preset) {
+            const file = namedParams.preset;
             const preset = fs.readFileSync(file).toString();
             const json = JSON.parse(preset);
             synth.setPreset(json);
         }
-        setCacheStatus([fs.statSync('$1').mtimeMs, fs.statSync('./lib/translate-note.js').mtimeMs, jsonTimeStamps, preset]);
+        setCacheStatus([fs.statSync('$1').mtimeMs, fs.statSync('./lib/translate-note.js').mtimeMs, preset]);
         synths.push(synth);
         return SILENCE_FILE + ' ' + endMarkerPos;
     script_end;

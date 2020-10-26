@@ -3,5 +3,5 @@ tempo = 130
 include lib/synth
 
 part main:
-   arpeggiator ./lib/additive-synth.js c3,c3,c4,c3,c#3,c3,c3,c4 preset=./lib/additive-waveforms/triangle.json \
-    decay=0.2 sustain=0.5  release=0.05
+    add_synth ./lib/additive-synth.js seq=./test/testseq.pianoroll preset=./lib/additive-waveforms/triangle.json \
+        decay=0.2 sustain=0.5  release=0.05

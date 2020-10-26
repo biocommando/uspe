@@ -145,7 +145,6 @@ const executePart = (name, params, offset = 0) => {
         .body
         .map(line => line.replace(/\$range\((\d+?)\-(\d+?) (.+?)\)/g, (_, start, end, sep) => {
             const str = Array(Number(end) - Number(start) + 1).fill().map((_, i) => '$' + (i + Number(start))).join(sep);
-            console.log('Range repl', str, start, end, sep)
             return str
         }))
         .map(line => line.replace(/(\$\d\d*)/g, (_, n) => { const p = params[Number(n.substr(1)) - 1]; return p === undefined ? n : p;}))

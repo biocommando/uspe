@@ -1,0 +1,5 @@
+{
+    "input": "test.txt",
+    "output": "output.wav",
+    "sampledir": "test/"
+}
