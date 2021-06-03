@@ -43,7 +43,11 @@ function read16BitWaveFile(fileName) {
         dataFound = fileBytes.asciiSlice(offset, offset + 4) === 'data'
     }
     const dataLength = fileBytes.readUInt32LE(offset + 4)
-    const b = Array.from(new Int16Array(new Uint8Array(fileBytes.subarray(offset + 8, offset + 8 + dataLength)).buffer)).map(x => x * _16bitIntToFloat)
+    const uintarr = new Int16Array(new Uint8Array(fileBytes.subarray(offset + 8, offset + 8 + dataLength)).buffer)
+    let b = []
+    uintarr.forEach(x => {
+        b.push(x * _16bitIntToFloat)
+    })
     if (channels === 1) return [b]
     const stereo = [[],[]]
     b.forEach((sample, i) => {
